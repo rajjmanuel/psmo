@@ -1,0 +1,474 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f6f8fc;
+  --surface: #ffffff;
+  --surface-soft: #eef4ff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #dbe5f5;
+  --primary: #1d4ed8;
+  --primary-deep: #172554;
+  --primary-soft: #dbeafe;
+  --accent: #06b6d4;
+  --accent-soft: #cffafe;
+  --warning: #f59e0b;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-poppins), "Poppins", "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+.font-display {
+  font-family: var(--font-poppins), "Poppins", "Segoe UI", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--primary-deep);
+}
+
+.ledger-rule {
+  background-image: linear-gradient(to right, transparent 0, var(--accent) 12%, var(--accent) 88%, transparent 100%);
+  height: 1px;
+}
+
+.grain {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(29, 78, 216, 0.12), transparent 30%),
+    radial-gradient(circle at 88% 0%, rgba(6, 182, 212, 0.12), transparent 28%),
+    linear-gradient(135deg, #f8fbff 0%, #eef4ff 46%, #f6f8fc 100%);
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.field {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  padding: 0.65rem 0.85rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.12);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary) 0%, #2563eb 58%, var(--accent) 100%);
+  padding: 0.65rem 1.2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(29, 78, 216, 0.18);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(29, 78, 216, 0.24);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.65rem 1.2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-deep);
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.btn-ghost:hover {
+  transform: translateY(-1px);
+  border-color: #bfdbfe;
+  background: #ffffff;
+}
+
+/* Bootstrap-style modal layout. Kept scoped so the rest of the app is unaffected. */
+.bootstrap-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: #000;
+  opacity: 0.55;
+}
+
+.bootstrap-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: 0;
+}
+
+.bootstrap-modal .modal-dialog {
+  position: relative;
+  width: auto;
+  margin: 0.75rem;
+  pointer-events: none;
+  min-height: calc(100% - 1.5rem);
+  display: flex;
+  align-items: center;
+}
+
+.bootstrap-modal .modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100vh - 1.5rem);
+  pointer-events: auto;
+  background: #ffffff;
+  background-clip: padding-box;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  outline: 0;
+  box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.28);
+  color: var(--ink);
+}
+
+.bootstrap-modal .modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.35rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+  border-radius: 1rem 1rem 0 0;
+}
+
+.bootstrap-modal .modal-title {
+  margin: 0;
+  color: var(--primary-deep);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bootstrap-modal .modal-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.bootstrap-modal .modal-description {
+  max-width: 48rem;
+  margin: 0.35rem 0 0;
+  color: #475569;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.bootstrap-modal .modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1.35rem;
+  color: var(--ink);
+}
+
+.bootstrap-modal .btn-close {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary-deep);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.bootstrap-modal .btn-close::before {
+  content: "×";
+}
+
+.bootstrap-modal .btn-close:hover {
+  background: var(--primary-soft);
+}
+
+.bootstrap-modal .modal-content-readable,
+.bootstrap-modal .modal-content-readable form,
+.bootstrap-modal .modal-content-readable section,
+.bootstrap-modal .modal-content-readable label,
+.bootstrap-modal .modal-content-readable h2,
+.bootstrap-modal .modal-content-readable h3,
+.bootstrap-modal .modal-content-readable p,
+.bootstrap-modal .modal-content-readable span,
+.bootstrap-modal .modal-content-readable td,
+.bootstrap-modal .modal-content-readable th,
+.bootstrap-modal .modal-content-readable dt,
+.bootstrap-modal .modal-content-readable dd {
+  color: var(--ink);
+}
+
+.bootstrap-modal .modal-content-readable input,
+.bootstrap-modal .modal-content-readable select,
+.bootstrap-modal .modal-content-readable textarea,
+.bootstrap-modal .modal-content-readable option {
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.bootstrap-modal .modal-content-readable input::placeholder,
+.bootstrap-modal .modal-content-readable textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.bootstrap-modal .modal-content-readable .btn-primary,
+.bootstrap-modal .modal-content-readable .btn-primary * {
+  color: #ffffff;
+}
+
+.bootstrap-modal .modal-content-readable .btn-ghost,
+.bootstrap-modal .modal-content-readable .btn-ghost * {
+  color: var(--primary-deep);
+}
+
+@media (min-width: 576px) {
+  .bootstrap-modal .modal-dialog {
+    max-width: 540px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .bootstrap-modal .modal-dialog {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .bootstrap-modal .modal-dialog {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .bootstrap-modal .modal-dialog {
+    max-width: 1140px;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-card {
+  animation: toast-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 640px) {
+  .bootstrap-modal .modal-dialog {
+    align-items: flex-end;
+    margin: 0;
+    min-height: 100%;
+  }
+
+  .bootstrap-modal .modal-content {
+    max-height: 94vh;
+    border-radius: 1rem 1rem 0 0;
+  }
+}
+
+
+
+/* ==========================================================================
+   PRINT STYLES — only the report content should appear on paper.
+   Sidebar, top header (incl. Log out), buttons and popups are excluded.
+   ========================================================================== */
+@media print {
+  /* Reset page chrome */
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  /* Remove decorative gradients / shadows that waste ink */
+  body,
+  .grain,
+  .bootstrap-modal,
+  .bootstrap-modal-backdrop {
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide all app chrome and interactive elements */
+  aside,
+  header,
+  nav,
+  button,
+  .btn-primary,
+  .btn-ghost,
+  .swal2-container,
+  .bootstrap-modal,
+  .bootstrap-modal-backdrop,
+  .print\:hidden,
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  /* Keep the page content flush to the paper edge */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Cards: flatten for paper */
+  section,
+  .rounded-2xl,
+  .rounded-xl {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  section {
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    padding: 10px 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Tables must be fully visible on paper — never scroll or clip */
+  .overflow-x-auto,
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: collapse !important;
+    font-size: 9.5pt;
+  }
+
+  thead {
+    display: table-header-group; /* repeat header on every page */
+    background: #f1f5f9 !important;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  th,
+  td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 5px 7px !important;
+    color: #000000 !important;
+  }
+
+  /* Status "pills" (rounded badges with ring border) become plain uniform
+     text on paper — no rounded box, no border, no background fill. Scoped to
+     .status-badge only so decorative dots/avatars elsewhere are unaffected. */
+  .status-badge {
+    display: inline !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    font-weight: 600 !important;
+  }
+
+  h1 {
+    font-size: 18pt !important;
+  }
+
+  h2 {
+    font-size: 13pt !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #000000 !important;
+  }
+
+  /* Print-only report letterhead */
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Letterhead is hidden on screen, shown only when printing */
+.print-only {
+  display: none;
+}
