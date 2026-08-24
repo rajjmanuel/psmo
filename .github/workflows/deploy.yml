@@ -43,16 +43,16 @@ jobs:
 
       - name: Validate deployment secrets
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
-          VPS_PATH: ${{ secrets.VPS_PATH }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           missing=""
-          [ -n "$VPS_HOST" ] || missing="$missing VPS_HOST"
-          [ -n "$VPS_USER" ] || missing="$missing VPS_USER"
-          [ -n "$VPS_PASSWORD" ] || missing="$missing VPS_PASSWORD"
-          [ -n "$VPS_PATH" ] || missing="$missing VPS_PATH"
+          [ -n "$DEPLOY_HOST" ] || missing="$missing DEPLOY_HOST"
+          [ -n "$DEPLOY_USERNAME" ] || missing="$missing DEPLOY_USERNAME"
+          [ -n "$DEPLOY_PASSWORD" ] || missing="$missing DEPLOY_PASSWORD"
+          [ -n "$DEPLOY_PATH" ] || missing="$missing DEPLOY_PATH"
           if [ -n "$missing" ]; then
             echo "Missing GitHub Actions secrets:$missing"
             echo "Add them under Settings > Secrets and variables > Actions."
@@ -65,7 +65,7 @@ jobs:
           sudo apt-get install -y rsync sshpass
           ok=""
           for i in 1 2 3 4 5; do
-            if sshpass -p "${{ secrets.VPS_PASSWORD }}" rsync -az --delete \
+            if sshpass -p "${{ secrets.DEPLOY_PASSWORD }}" rsync -az --delete \
               -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15" \
               --exclude '.git/' \
               --exclude '.github/' \
@@ -76,7 +76,7 @@ jobs:
               --exclude 'public/uploads/' \
               --exclude '*.log' \
               --exclude 'tsconfig.tsbuildinfo' \
-              ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/"; then
+              ./ "${{ secrets.DEPLOY_USERNAME }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"; then
               ok=1
               break
             fi
@@ -88,14 +88,14 @@ jobs:
       - name: Build, migrate, and restart on server
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
           port: 22
           command_timeout: "30m"
           script: |
             set -e
-            cd "${{ secrets.VPS_PATH }}"
+            cd "${{ secrets.DEPLOY_PATH }}"
             if [ -f .env.production ]; then
               set -a
               . ./.env.production
@@ -123,6 +123,6 @@ jobs:
 
       - name: Public health check
         run: |
-          curl -sf --retry 6 --retry-delay 10 --retry-all-errors "https://${{ secrets.VPS_HOST }}/api/health" \
+          curl -sf --retry 6 --retry-delay 10 --retry-all-errors "https://${{ secrets.DEPLOY_HOST }}/api/health" \
             || { echo "Public domain health check failed"; exit 1; }
           echo "App is healthy."
