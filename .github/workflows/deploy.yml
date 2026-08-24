@@ -17,6 +17,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate deployment secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          missing=""
+          [ -n "$DEPLOY_HOST" ] || missing="$missing DEPLOY_HOST"
+          [ -n "$DEPLOY_USERNAME" ] || missing="$missing DEPLOY_USERNAME"
+          [ -n "$DEPLOY_PASSWORD" ] || missing="$missing DEPLOY_PASSWORD"
+          [ -n "$DEPLOY_PATH" ] || missing="$missing DEPLOY_PATH"
+          if [ -n "$missing" ]; then
+            echo "Missing GitHub Actions secrets:$missing"
+            echo "Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
       - name: Upload application files
         uses: appleboy/scp-action@v1.0.0
         with:
