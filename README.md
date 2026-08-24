@@ -107,7 +107,7 @@ database backup if you already have data; otherwise create the tables with
 In CyberPanel, create a Node.js application for your domain and use the Node.js
 version supported by your server (Node.js 20+ recommended). Upload the project
 files, including `package.json`, `package-lock.json`, `src`, `public`, and
-`drizzle.config.json`, then run these commands in the project directory:
+`drizzle.config.ts`, then run these commands in the project directory:
 
 ```bash
 npm install
@@ -132,6 +132,26 @@ and included in your backup plan.
 
 After deployment, open your domain and verify login, settings save, inventory
 search, uploads, and the activity logs. Change all default passwords immediately.
+
+### Automatic deployment with GitHub Actions
+
+The workflow in `.github/workflows/deploy.yml` runs whenever code is pushed to
+the `main` branch. It can also be started manually from the **Actions** tab.
+Add these repository secrets in GitHub under **Settings > Secrets and variables > Actions**:
+
+| Secret | Value |
+| --- | --- |
+| `DEPLOY_HOST` | CyberPanel server hostname or IP address |
+| `DEPLOY_USERNAME` | SSH username |
+| `DEPLOY_PASSWORD` | SSH password |
+| `DEPLOY_PATH` | Full application path on the server |
+| `DEPLOY_PM2_NAME` | Optional PM2 name; defaults to `psmo` |
+
+Before the first automatic deployment, create `.env` or configure environment
+variables on the server with the production `DATABASE_URL`, a unique
+`SESSION_SECRET`, and `NODE_ENV=production`. The server must have Node.js,
+npm, Drizzle CLI dependencies, and PM2 available. The SSH account must be able
+to write to `DEPLOY_PATH` and run PM2.
 
 ## Useful commands
 

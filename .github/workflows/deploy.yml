@@ -1,0 +1,54 @@
+name: Deploy PSMO to CyberPanel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: psmo-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload application files
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          source: "package.json,package-lock.json,next.config.ts,postcss.config.mjs,tsconfig.json,drizzle.config.ts,drizzle,public,src"
+          target: ${{ secrets.DEPLOY_PATH }}
+          overwrite: true
+          rm: false
+
+      - name: Install, migrate, build, and restart
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          PM2_NAME: ${{ secrets.DEPLOY_PM2_NAME }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          envs: DEPLOY_PATH,PM2_NAME
+          script: |
+            set -e
+            cd "$DEPLOY_PATH"
+            npm ci --include=dev
+            npx drizzle-kit push
+            npm run build
+            if [ -n "$PM2_NAME" ]; then
+              pm2 restart "$PM2_NAME" --update-env
+            elif pm2 describe psmo >/dev/null 2>&1; then
+              pm2 restart psmo --update-env
+            else
+              pm2 start npm --name psmo -- start
+            fi
+            pm2 save
