@@ -63,6 +63,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y rsync sshpass
+          echo "Runner IP: $(curl -s --max-time 10 https://api.ipify.org)"
+          if timeout 15 bash -c "echo > /dev/tcp/${{ secrets.DEPLOY_HOST }}/22" 2>/dev/null; then
+            echo "SSH port 22: reachable from this runner"
+          else
+            echo "SSH port 22: timeout or blocked from this runner"
+          fi
           ok=""
           for i in 1 2 3 4 5; do
             if sshpass -p "${{ secrets.DEPLOY_PASSWORD }}" rsync -az --delete \
@@ -111,15 +117,14 @@ jobs:
             export NODE_ENV=production
             [ -n "$DATABASE_URL" ] || { echo 'DATABASE_URL is missing from the server environment file.'; exit 1; }
             [ -n "$SESSION_SECRET" ] || { echo 'SESSION_SECRET is missing from the server environment file.'; exit 1; }
-            npm ci
+            npm ci --include=dev
             npm run build
             npx drizzle-kit push --force
-            if pm2 describe psmo >/dev/null 2>&1; then
-              pm2 restart psmo --update-env
-            else
-              pm2 start npm --name psmo -- start
-            fi
+            pm2 delete psmo 2>/dev/null || true
+            PORT=3100 pm2 start npm --name psmo --update-env -- start
             pm2 save
+            sleep 5
+            curl -sf -m 10 http://127.0.0.1:3100/api/health
 
       - name: Public health check
         run: |

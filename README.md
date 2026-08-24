@@ -152,7 +152,9 @@ the server with the production `DATABASE_URL`, a unique `SESSION_SECRET`, and
 The workflow syncs source files with `rsync`, excluding `.env*`,
 `node_modules`, `.next`, and `public/uploads`. The server must have Node.js,
 npm, Drizzle CLI dependencies, PM2, and rsync available. The SSH account must
-be able to write to `DEPLOY_PATH` and run PM2.
+be able to write to `DEPLOY_PATH` and run PM2. The deployment runs the Next.js
+process as PM2 app `psmo` on port `3100`; configure CyberPanel/OpenLiteSpeed to
+reverse-proxy the domain to `127.0.0.1:3100`.
 
 ## Useful commands
 
