@@ -1,6 +1,3 @@
-import { randomBytes } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth-server";
 
@@ -32,20 +29,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image too large. Keep under 2.5 MB." }, { status: 400 });
   }
 
-  const ext =
-    file.type === "image/png"
-      ? "png"
-      : file.type === "image/webp"
-        ? "webp"
-        : file.type === "image/gif"
-          ? "gif"
-          : "jpg";
-
-  const name = `${Date.now()}-${randomBytes(4).toString("hex")}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(dir, name), bytes);
+  const encoded = bytes.toString("base64");
 
-  return NextResponse.json({ url: `/uploads/${name}` });
+  return NextResponse.json({ url: `data:${file.type};base64,${encoded}` });
 }

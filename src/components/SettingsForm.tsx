@@ -193,7 +193,7 @@ export function SettingsForm() {
       <section className="rounded-2xl border border-[var(--line)] bg-white p-5">
         <h2 className="font-display text-xl text-[var(--ink)]">Logos & display images</h2>
         <p className="mb-4 text-sm text-[var(--muted)]">
-          Upload a new image or paste a URL. Uploads are stored as data URLs in settings.
+          Upload a new image or paste a URL. Uploaded images are stored with the settings.
         </p>
         <div className="grid gap-5 md:grid-cols-2">
           <ImageField

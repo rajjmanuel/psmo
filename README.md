@@ -126,9 +126,9 @@ NODE_ENV=production
 
 CyberPanel or the reverse proxy should forward your domain to the Node.js
 application port. `next start` uses the `PORT` value supplied by the hosting
-panel. Enable SSL/HTTPS before allowing users to sign in. The application also
-writes uploaded images to `public/uploads`, so that directory must be writable
-and included in your backup plan.
+panel. Enable SSL/HTTPS before allowing users to sign in. Uploaded images are
+stored in the `app_settings` database row, so include them in your database
+backup plan.
 
 After deployment, open your domain and verify login, settings save, inventory
 search, uploads, and the activity logs. Change all default passwords immediately.
@@ -150,7 +150,7 @@ Before the first automatic deployment, create `.env.production` or `.env` on
 the server with the production `DATABASE_URL`, a unique `SESSION_SECRET`, and
 `NODE_ENV=production`. The workflow loads this file and does not overwrite it.
 The workflow syncs source files with `rsync`, excluding `.env*`,
-`node_modules`, `.next`, and `public/uploads`. The server must have Node.js,
+`node_modules`, and `.next`. The server must have Node.js,
 npm, Drizzle CLI dependencies, PM2, and rsync available. The SSH account must
 be able to write to `DEPLOY_PATH` and run PM2. The deployment runs the Next.js
 process as PM2 app `psmo` on port `3100`; configure CyberPanel/OpenLiteSpeed to

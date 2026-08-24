@@ -3,6 +3,7 @@ import {
   date,
   datetime,
   int,
+  mediumtext,
   decimal,
   mysqlTable,
   text,
@@ -155,11 +156,11 @@ export const appSettings = mysqlTable("app_settings", {
     .notNull()
     .default("Use your PSMO credentials. After login you will go straight to dashboard."),
   // Images (URL or data URL)
-  logoUrl: text("logo_url").notNull().default("https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=400&q=80"),
-  heroImageUrl: text("hero_image_url").notNull().default("https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=85"),
-  inventoryImageUrl: text("inventory_image_url").notNull().default("https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1000&q=85"),
-  disposalImageUrl: text("disposal_image_url").notNull().default("https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1000&q=85"),
-  procurementImageUrl: text("procurement_image_url")
+  logoUrl: mediumtext("logo_url").notNull().default("https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=400&q=80"),
+  heroImageUrl: mediumtext("hero_image_url").notNull().default("https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=85"),
+  inventoryImageUrl: mediumtext("inventory_image_url").notNull().default("https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1000&q=85"),
+  disposalImageUrl: mediumtext("disposal_image_url").notNull().default("https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1000&q=85"),
+  procurementImageUrl: mediumtext("procurement_image_url")
     .notNull()
     .default("https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1000&q=85"),
   // Theme

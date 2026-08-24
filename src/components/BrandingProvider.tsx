@@ -29,7 +29,7 @@ const BrandingContext = createContext<{
 
 function cacheSettings(next: AppSettings) {
   try {
-    // Never cache giant data URLs — those belong in /uploads or the database.
+    // Keep large image values out of localStorage; the server remains the source of truth.
     const safe: AppSettings = {
       ...next,
       logoUrl: next.logoUrl.startsWith("data:") ? DEFAULT_SETTINGS.logoUrl : next.logoUrl,
