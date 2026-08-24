@@ -155,7 +155,8 @@ npm, Drizzle CLI dependencies, PM2, and rsync available. The SSH account must
 be able to write to `DEPLOY_PATH` and run PM2. The deployment runs the Next.js
 process as PM2 app `psmo` on port `3100`; configure CyberPanel/OpenLiteSpeed to
 reverse-proxy the domain to `127.0.0.1:3100`. Checked-in files in `drizzle/`
-are applied with `drizzle-kit migrate` during deployment.
+are included in the deployment, and the server schema is reconciled with
+`drizzle-kit push --force` during deployment.
 
 ## Useful commands
 
@@ -169,8 +170,8 @@ are applied with `drizzle-kit migrate` during deployment.
 # Generate a migration after changing the schema
 .\node_modules\.bin\drizzle-kit.cmd generate
 
-# Apply checked-in migrations to MySQL/MariaDB
-.\node_modules\.bin\drizzle-kit.cmd migrate
+# Reconcile the schema with MySQL/MariaDB
+.\node_modules\.bin\drizzle-kit.cmd push --force
 
 # Create a production build
 .\node_modules\.bin\next.cmd build

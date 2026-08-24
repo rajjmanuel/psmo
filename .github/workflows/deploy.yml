@@ -119,7 +119,7 @@ jobs:
             [ -n "$SESSION_SECRET" ] || { echo 'SESSION_SECRET is missing from the server environment file.'; exit 1; }
             npm ci --include=dev
             npm run build
-            npx drizzle-kit migrate
+            npx drizzle-kit push --force
             pm2 delete psmo 2>/dev/null || true
             PORT=3100 pm2 start npm --name psmo --update-env -- start
             pm2 save
