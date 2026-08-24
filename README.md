@@ -141,20 +141,18 @@ Add these repository secrets in GitHub under **Settings > Secrets and variables 
 
 | Secret | Value |
 | --- | --- |
-| `DEPLOY_HOST` | CyberPanel server hostname or IP address |
-| `DEPLOY_USERNAME` | SSH username |
-| `DEPLOY_PASSWORD` | SSH password |
-| `DEPLOY_PATH` | Full application path on the server |
-| `DEPLOY_PM2_NAME` | Optional PM2 name; defaults to `psmo` |
-| `DATABASE_URL` | Production MySQL connection URL |
-| `SESSION_SECRET` | Long random production session secret |
+| `VPS_HOST` | CyberPanel server hostname or IP address |
+| `VPS_USER` | SSH username |
+| `VPS_PASSWORD` | SSH password |
+| `VPS_PATH` | Full absolute application path on the server |
 
-Before the first automatic deployment, create `.env` or configure environment
-variables on the server with the production `DATABASE_URL`, a unique
-`SESSION_SECRET`, and `NODE_ENV=production`. The workflow writes these values
-to `.env.production` during deployment. The server must have Node.js,
-npm, Drizzle CLI dependencies, and PM2 available. The SSH account must be able
-to write to `DEPLOY_PATH` and run PM2.
+Before the first automatic deployment, create `.env.production` or `.env` on
+the server with the production `DATABASE_URL`, a unique `SESSION_SECRET`, and
+`NODE_ENV=production`. The workflow loads this file and does not overwrite it.
+The workflow syncs source files with `rsync`, excluding `.env*`,
+`node_modules`, `.next`, and `public/uploads`. The server must have Node.js,
+npm, Drizzle CLI dependencies, PM2, and rsync available. The SSH account must
+be able to write to `VPS_PATH` and run PM2.
 
 ## Useful commands
 

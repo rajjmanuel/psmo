@@ -1,81 +1,128 @@
-name: Deploy PSMO to CyberPanel
+name: CI/CD Deploy to CyberPanel
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: psmo-production
-  cancel-in-progress: true
+  group: deploy
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  test:
+    name: CI (typecheck + build)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+        env:
+          DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/ci
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: mysql://ci:ci@127.0.0.1:3306/ci
+
+  deploy:
+    name: Deploy to CyberPanel
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Validate deployment secrets
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
-          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
         run: |
           missing=""
-          [ -n "$DEPLOY_HOST" ] || missing="$missing DEPLOY_HOST"
-          [ -n "$DEPLOY_USERNAME" ] || missing="$missing DEPLOY_USERNAME"
-          [ -n "$DEPLOY_PASSWORD" ] || missing="$missing DEPLOY_PASSWORD"
-          [ -n "$DEPLOY_PATH" ] || missing="$missing DEPLOY_PATH"
-          [ -n "$DATABASE_URL" ] || missing="$missing DATABASE_URL"
-          [ -n "$SESSION_SECRET" ] || missing="$missing SESSION_SECRET"
+          [ -n "$VPS_HOST" ] || missing="$missing VPS_HOST"
+          [ -n "$VPS_USER" ] || missing="$missing VPS_USER"
+          [ -n "$VPS_PASSWORD" ] || missing="$missing VPS_PASSWORD"
+          [ -n "$VPS_PATH" ] || missing="$missing VPS_PATH"
           if [ -n "$missing" ]; then
             echo "Missing GitHub Actions secrets:$missing"
             echo "Add them under Settings > Secrets and variables > Actions."
             exit 1
           fi
 
-      - name: Upload application files
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          password: ${{ secrets.DEPLOY_PASSWORD }}
-          source: "package.json,package-lock.json,next.config.ts,postcss.config.mjs,tsconfig.json,drizzle.config.ts,drizzle,public,src"
-          target: ${{ secrets.DEPLOY_PATH }}
-          overwrite: true
-          rm: false
+      - name: Sync code to server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync sshpass
+          ok=""
+          for i in 1 2 3 4 5; do
+            if sshpass -p "${{ secrets.VPS_PASSWORD }}" rsync -az --delete \
+              -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15" \
+              --exclude '.git/' \
+              --exclude '.github/' \
+              --exclude 'node_modules/' \
+              --exclude '.next/' \
+              --exclude '.env' \
+              --exclude '.env.*' \
+              --exclude 'public/uploads/' \
+              --exclude '*.log' \
+              --exclude 'tsconfig.tsbuildinfo' \
+              ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/"; then
+              ok=1
+              break
+            fi
+            echo "rsync attempt $i failed, retrying in 20s..."
+            sleep 20
+          done
+          [ -n "$ok" ] || { echo "rsync failed after 5 attempts"; exit 1; }
 
-      - name: Install, migrate, build, and restart
-        uses: appleboy/ssh-action@v1.2.2
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          PM2_NAME: ${{ secrets.DEPLOY_PM2_NAME }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      - name: Build, migrate, and restart on server
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          password: ${{ secrets.DEPLOY_PASSWORD }}
-          envs: DEPLOY_PATH,PM2_NAME,DATABASE_URL,SESSION_SECRET
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          command_timeout: "30m"
           script: |
             set -e
-            cd "$DEPLOY_PATH"
-            export DATABASE_URL SESSION_SECRET NODE_ENV=production
-            printf 'DATABASE_URL=%s\nSESSION_SECRET=%s\nNODE_ENV=production\n' "$DATABASE_URL" "$SESSION_SECRET" > .env.production
-            chmod 600 .env.production
-            npm ci --include=dev
-            npx drizzle-kit push
+            cd "${{ secrets.VPS_PATH }}"
+            if [ -f .env.production ]; then
+              set -a
+              . ./.env.production
+              set +a
+            elif [ -f .env ]; then
+              set -a
+              . ./.env
+              set +a
+            else
+              echo 'Missing .env.production or .env on the deployment server.'
+              exit 1
+            fi
+            export NODE_ENV=production
+            [ -n "$DATABASE_URL" ] || { echo 'DATABASE_URL is missing from the server environment file.'; exit 1; }
+            [ -n "$SESSION_SECRET" ] || { echo 'SESSION_SECRET is missing from the server environment file.'; exit 1; }
+            npm ci
             npm run build
-            if [ -n "$PM2_NAME" ]; then
-              pm2 restart "$PM2_NAME" --update-env
-            elif pm2 describe psmo >/dev/null 2>&1; then
+            npx drizzle-kit push --force
+            if pm2 describe psmo >/dev/null 2>&1; then
               pm2 restart psmo --update-env
             else
               pm2 start npm --name psmo -- start
             fi
             pm2 save
+
+      - name: Public health check
+        run: |
+          curl -sf --retry 6 --retry-delay 10 --retry-all-errors "https://${{ secrets.VPS_HOST }}/api/health" \
+            || { echo "Public domain health check failed"; exit 1; }
+          echo "App is healthy."
