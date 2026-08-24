@@ -177,3 +177,10 @@ export const appSettings = mysqlTable("app_settings", {
   updatedBy: text("updated_by"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const settingImages = mysqlTable("setting_images", {
+  id: int("id").autoincrement().primaryKey(),
+  mimeType: text("mime_type").notNull(),
+  data: mediumtext("data").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

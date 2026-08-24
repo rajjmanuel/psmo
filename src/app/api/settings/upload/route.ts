@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { db } from "@/db";
+import { settingImages } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,10 @@ export async function POST(request: Request) {
 
   const bytes = Buffer.from(await file.arrayBuffer());
   const encoded = bytes.toString("base64");
+  const [{ id }] = await db
+    .insert(settingImages)
+    .values({ mimeType: file.type, data: encoded })
+    .$returningId();
 
-  return NextResponse.json({ url: `data:${file.type};base64,${encoded}` });
+  return NextResponse.json({ url: `/api/settings/images/${id}` });
 }

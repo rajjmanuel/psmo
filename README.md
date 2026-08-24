@@ -127,7 +127,7 @@ NODE_ENV=production
 CyberPanel or the reverse proxy should forward your domain to the Node.js
 application port. `next start` uses the `PORT` value supplied by the hosting
 panel. Enable SSL/HTTPS before allowing users to sign in. Uploaded images are
-stored in the `app_settings` database row, so include them in your database
+stored in the `setting_images` database table, so include them in your database
 backup plan.
 
 After deployment, open your domain and verify login, settings save, inventory

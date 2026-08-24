@@ -72,7 +72,7 @@ export async function PUT(request: Request) {
   } catch (error) {
     console.error("Failed to save settings:", error);
     return NextResponse.json(
-      { error: "Unable to save settings. Please try a smaller image or save again." },
+      { error: "Unable to save settings. Please check the database connection and try again." },
       { status: 500 },
     );
   }
