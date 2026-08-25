@@ -22,6 +22,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href={initialSettings.logoUrl} />
+      </head>
       <body suppressHydrationWarning className={`${poppins.variable} antialiased`}>
         <BrandingProvider initial={initialSettings}>{children}</BrandingProvider>
       </body>
