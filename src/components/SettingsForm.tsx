@@ -60,19 +60,26 @@ export function SettingsForm() {
     file: File | null,
   ) {
     if (!file) return;
-    if (file.size > 2_500_000) {
+    if (file.size > 10_000_000) {
       setError("Image too large. Keep under 2.5 MB.");
       return;
     }
+    let uploadFile: File;
+    try {
+      uploadFile = await optimizeImage(file);
+    } catch {
+      setError("Unable to process this image. Please choose a valid image file.");
+      return;
+    }
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", uploadFile, uploadFile.name);
     const res = await authFetch("/api/settings/upload", {
       method: "POST",
       body,
     });
     const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
     if (!res.ok || !data.url) {
-      setError(data.error ?? "Unable to upload image.");
+      setError(data.error ?? `Unable to upload image (HTTP ${res.status}).`);
       return;
     }
     const next = { ...form, [key]: data.url };
@@ -369,6 +376,26 @@ export function SettingsForm() {
       </div>
     </div>
   );
+}
+
+async function optimizeImage(file: File): Promise<File> {
+  if (file.size <= 100_000) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", 0.8),
+  );
+  if (!blob) return file;
+  return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
+    type: "image/webp",
+  });
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
