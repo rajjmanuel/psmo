@@ -367,20 +367,26 @@ export function SettingsForm() {
 }
 
 async function optimizeImage(file: File): Promise<File> {
-  if (file.size <= 100_000) return file;
+  if (file.size <= 40_000) return file;
 
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
   canvas.height = Math.max(1, Math.round(bitmap.height * scale));
   canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
 
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", 0.8),
-  );
-  if (!blob) return file;
+  let blob: Blob | null = null;
+  for (const quality of [0.72, 0.58, 0.45, 0.32]) {
+    blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", quality),
+    );
+    if (blob && blob.size <= 40_000) break;
+  }
+  if (!blob || blob.size > 40_000) {
+    throw new Error("Image is too detailed to fit the current settings storage limit.");
+  }
   return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
     type: "image/webp",
   });
