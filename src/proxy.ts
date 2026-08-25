@@ -10,6 +10,7 @@ function isPublicPath(pathname: string, method: string) {
   if (pathname.startsWith("/api/auth") || pathname === "/api/health") return true;
   // Allow reading branding without a session (login page). Writes still require auth.
   if (pathname === "/api/settings" && method === "GET") return true;
+  if (pathname.startsWith("/api/settings/images/") && method === "GET") return true;
   return false;
 }
 
