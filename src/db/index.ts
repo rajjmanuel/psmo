@@ -15,9 +15,13 @@ export const pool =
   globalForDb.__psmoMysqlPool ??
   mysql.createPool({
     uri: databaseUrl,
-    timezone: "+08:00",
+    timezone: "Z",
     dateStrings: true,
   });
+
+pool.on("connection", (connection) => {
+  void connection.query("SET time_zone = '+00:00'");
+});
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__psmoMysqlPool = pool;
