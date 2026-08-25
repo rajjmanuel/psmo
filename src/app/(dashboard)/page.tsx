@@ -190,12 +190,14 @@ function Stat({
   compact?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-[var(--line)] bg-white px-4 py-4">
+    <div className="flex min-w-0 flex-col rounded-2xl border border-[var(--line)] bg-white px-4 py-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--primary)]">{label}</p>
-      <p className={`font-display mt-1 min-w-0 max-w-full overflow-hidden break-all text-[var(--ink)] ${compact ? "text-xl leading-tight sm:text-2xl" : "text-3xl"}`}>
-        {value}
-      </p>
-      <p className="text-xs text-[var(--muted)]">{detail}</p>
+      <div className="mt-1 flex min-h-12 items-start">
+        <p className={`font-display min-w-0 max-w-full overflow-hidden break-all text-[var(--ink)] ${compact ? "text-xl leading-tight sm:text-2xl" : "text-3xl"}`}>
+          {value}
+        </p>
+      </div>
+      <p className="mt-auto text-xs text-[var(--muted)]">{detail}</p>
     </div>
   );
 }
