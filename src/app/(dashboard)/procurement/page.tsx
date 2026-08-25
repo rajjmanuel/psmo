@@ -24,7 +24,12 @@ export default async function ProcurementPage({
     .select({ unit: procurementRequests.unit })
     .from(procurementRequests)
     .groupBy(procurementRequests.unit);
-  const unitRecords = await db.select().from(procurementUnits).orderBy(procurementUnits.name);
+  let unitRecords: typeof procurementUnits.$inferSelect[] = [];
+  try {
+    unitRecords = await db.select().from(procurementUnits).orderBy(procurementUnits.name);
+  } catch (error) {
+    console.error("Unable to load saved procurement units", error);
+  }
   const procurementUnitNames = Array.from(new Set(["AMT", "SSMT", ...unitRecords.map((row) => row.name), ...unitRows.map((row) => row.unit)]));
 
   const rows = await db
