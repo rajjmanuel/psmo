@@ -75,6 +75,16 @@ jobs:
             [ -n "$DATABASE_URL" ] || { echo 'DATABASE_URL is missing from the server environment file.'; exit 1; }
             [ -n "$SESSION_SECRET" ] || { echo 'SESSION_SECRET is missing from the server environment file.'; exit 1; }
             npm ci --include=dev
+            node --input-type=module <<'NODE'
+            import mysql from 'mysql2/promise';
+            const connection = await mysql.createConnection(process.env.DATABASE_URL);
+            await connection.query('CREATE TABLE IF NOT EXISTS procurement_units (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(191) NOT NULL UNIQUE, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)');
+            await connection.query('CREATE TABLE IF NOT EXISTS procurement_attachments (id INT AUTO_INCREMENT PRIMARY KEY, procurement_request_id INT NOT NULL, file_name VARCHAR(255) NOT NULL, mime_type VARCHAR(150) NOT NULL, data MEDIUMTEXT NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP)');
+            const [columns] = await connection.query('SHOW COLUMNS FROM disposal_requests LIKE "rejected_from_status"');
+            if (columns.length === 0) await connection.query('ALTER TABLE disposal_requests ADD COLUMN rejected_from_status TEXT NULL');
+            await connection.end();
+            console.log('Required PSMO tables and columns are ready.');
+            NODE
             npx drizzle-kit push --force
             npm run build
             if [ -n "$PM2_NAME" ]; then
