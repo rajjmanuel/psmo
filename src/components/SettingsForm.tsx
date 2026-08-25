@@ -370,24 +370,35 @@ async function optimizeImage(file: File): Promise<File> {
   if (file.size <= 40_000) return file;
 
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  let result: Blob | null = null;
+  const maxDimension = Math.max(bitmap.width, bitmap.height);
+  const dimensions = [1000, 800, 640, 512, 400];
+  const qualities = [0.8, 0.65, 0.5, 0.35, 0.2];
+
+  for (const dimension of dimensions) {
+    const scale = Math.min(1, dimension / maxDimension);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+    for (const quality of qualities) {
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/webp", quality),
+      );
+      if (blob && blob.size <= 40_000) {
+        result = blob;
+        break;
+      }
+    }
+    if (result) break;
+  }
   bitmap.close();
 
-  let blob: Blob | null = null;
-  for (const quality of [0.72, 0.58, 0.45, 0.32]) {
-    blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/webp", quality),
-    );
-    if (blob && blob.size <= 40_000) break;
-  }
-  if (!blob || blob.size > 40_000) {
+  if (!result) {
     throw new Error("Image is too detailed to fit the current settings storage limit.");
   }
-  return new File([blob], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
+  return new File([result], `${file.name.replace(/\.[^.]+$/, "")}.webp`, {
     type: "image/webp",
   });
 }
