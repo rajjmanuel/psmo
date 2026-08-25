@@ -23,16 +23,12 @@ jobs:
           DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
           DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         run: |
           missing=""
           [ -n "$DEPLOY_HOST" ] || missing="$missing DEPLOY_HOST"
           [ -n "$DEPLOY_USERNAME" ] || missing="$missing DEPLOY_USERNAME"
           [ -n "$DEPLOY_PASSWORD" ] || missing="$missing DEPLOY_PASSWORD"
           [ -n "$DEPLOY_PATH" ] || missing="$missing DEPLOY_PATH"
-          [ -n "$DATABASE_URL" ] || missing="$missing DATABASE_URL"
-          [ -n "$SESSION_SECRET" ] || missing="$missing SESSION_SECRET"
           if [ -n "$missing" ]; then
             echo "Missing GitHub Actions secrets:$missing"
             echo "Add them under Settings > Secrets and variables > Actions."
@@ -55,19 +51,29 @@ jobs:
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           PM2_NAME: ${{ secrets.DEPLOY_PM2_NAME }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USERNAME }}
           password: ${{ secrets.DEPLOY_PASSWORD }}
-          envs: DEPLOY_PATH,PM2_NAME,DATABASE_URL,SESSION_SECRET
+          envs: DEPLOY_PATH,PM2_NAME
           script: |
             set -e
             cd "$DEPLOY_PATH"
-            export DATABASE_URL SESSION_SECRET NODE_ENV=production
-            printf 'DATABASE_URL=%s\nSESSION_SECRET=%s\nNODE_ENV=production\n' "$DATABASE_URL" "$SESSION_SECRET" > .env.production
-            chmod 600 .env.production
+            if [ -f .env.production ]; then
+              set -a
+              . ./.env.production
+              set +a
+            elif [ -f .env ]; then
+              set -a
+              . ./.env
+              set +a
+            else
+              echo 'Missing .env.production or .env on the deployment server.'
+              exit 1
+            fi
+            export NODE_ENV=production
+            [ -n "$DATABASE_URL" ] || { echo 'DATABASE_URL is missing from the server environment file.'; exit 1; }
+            [ -n "$SESSION_SECRET" ] || { echo 'SESSION_SECRET is missing from the server environment file.'; exit 1; }
             npm ci --include=dev
             npx drizzle-kit push --force
             npm run build
