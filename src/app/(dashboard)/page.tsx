@@ -91,7 +91,7 @@ export default async function HomePage() {
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Stat label="Tagged property" value={String(assetCount.n)} detail="Offices & laboratories" />
         <Stat label="Serviceable" value={String(serviceable.n)} detail="Ready for use" />
-        <Stat label="Book value" value={peso(valueRow.total)} detail="Recorded unit cost" />
+        <Stat label="Book value" value={peso(valueRow.total)} detail="Recorded unit cost" compact />
         <Stat
           label="Open disposals"
           value={String(openDisposals.n)}
@@ -178,11 +178,23 @@ export default async function HomePage() {
   );
 }
 
-function Stat({ label, value, detail }: { label: string; value: string; detail: string }) {
+function Stat({
+  label,
+  value,
+  detail,
+  compact = false,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  compact?: boolean;
+}) {
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-white px-4 py-4">
+    <div className="min-w-0 rounded-2xl border border-[var(--line)] bg-white px-4 py-4">
       <p className="text-[11px] uppercase tracking-[0.16em] text-[var(--primary)]">{label}</p>
-      <p className="font-display mt-1 text-3xl text-[var(--ink)]">{value}</p>
+      <p className={`font-display mt-1 min-w-0 max-w-full overflow-hidden break-all text-[var(--ink)] ${compact ? "text-xl leading-tight sm:text-2xl" : "text-3xl"}`}>
+        {value}
+      </p>
       <p className="text-xs text-[var(--muted)]">{detail}</p>
     </div>
   );
