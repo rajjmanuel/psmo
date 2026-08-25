@@ -78,6 +78,7 @@ export function AssetForm({
       error?: string;
       taggingNo?: string;
       description?: string;
+      disposalRequestNo?: string;
     };
     setSaving(false);
     if (!res.ok) {
@@ -87,7 +88,12 @@ export function AssetForm({
     }
     const label = data.taggingNo || String(formData.get("description") ?? "New item");
     if (initial?.id) {
-      toast.success("Record updated", `${label} has been updated on the ledger.`);
+      toast.success(
+        "Record updated",
+        data.disposalRequestNo
+          ? `${label} moved to For Disposal. Disposal request ${data.disposalRequestNo} was created automatically.`
+          : `${label} has been updated on the ledger.`,
+      );
     } else {
       toast.success("Item recorded to inventory", `${label} is now on the PSMO ledger.`);
     }

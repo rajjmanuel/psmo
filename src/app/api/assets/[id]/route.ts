@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { activityLogs, assets, offices } from "@/db/schema";
+import { activityLogs, assets, disposalItems, disposalRequests, offices } from "@/db/schema";
+import { nextDisposalNo } from "@/lib/next-number";
+import { todayISO } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +52,11 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = (await request.json()) as Record<string, string | number | null | undefined>;
+    const [existing] = await db.select().from(assets).where(eq(assets.id, Number(id)));
+
+    if (!existing) return Response.json({ error: "Not found" }, { status: 404 });
+
+    const nextStatus = body.status ? String(body.status) : existing.status;
 
     await db
       .update(assets)
@@ -94,6 +101,28 @@ export async function PUT(
 
     if (!row) return Response.json({ error: "Not found" }, { status: 404 });
 
+    let disposalRequestNo: string | undefined;
+    if (existing.status === "in-stock" && nextStatus === "for-disposal") {
+      disposalRequestNo = await nextDisposalNo();
+      const [{ id: disposalRequestId }] = await db
+        .insert(disposalRequests)
+        .values({
+          requestNo: disposalRequestNo,
+          officeId: row.officeId,
+          requestedBy: body.actor ? String(body.actor) : "PSMO Staff",
+          requestDate: todayISO(),
+          reason: `Asset ${row.taggingNo} changed from In Stock to For Disposal.`,
+          status: "requested",
+        })
+        .$returningId();
+
+      await db.insert(disposalItems).values({
+        disposalRequestId,
+        assetId: row.id,
+        reason: `Asset ${row.taggingNo} changed from In Stock to For Disposal.`,
+      });
+    }
+
     await db.insert(activityLogs).values({
       module: "inventory",
       action: "updated",
@@ -102,7 +131,7 @@ export async function PUT(
       actor: body.actor ? String(body.actor) : "PSMO Staff",
     });
 
-    return Response.json(row);
+    return Response.json({ ...row, disposalRequestNo });
   } catch (error: any) {
     if (error?.code === "23505" || error?.cause?.code === "23505") {
       return Response.json({ error: "That Tagging No. is already in use by another item." }, { status: 400 });
