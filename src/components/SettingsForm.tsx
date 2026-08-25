@@ -73,7 +73,7 @@ export function SettingsForm() {
     }
     const body = new FormData();
     body.append("file", uploadFile, uploadFile.name);
-    const res = await authFetch("/api/settings/upload", {
+    const res = await authFetch(`/api/settings/upload?key=${encodeURIComponent(key)}`, {
       method: "POST",
       body,
     });
@@ -86,18 +86,6 @@ export function SettingsForm() {
     setForm(next);
     updateLocal(next);
     setError("");
-    const saveRes = await authFetch("/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...next, actor: actorName }),
-    });
-    const saved = (await saveRes.json().catch(() => ({}))) as AppSettings & { error?: string };
-    if (!saveRes.ok) {
-      setError(saved.error ?? "Image uploaded, but settings could not be updated.");
-      return;
-    }
-    setForm(saved);
-    updateLocal(saved);
     setMsg("Image uploaded and saved.");
   }
 
