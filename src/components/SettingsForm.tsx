@@ -73,7 +73,7 @@ export function SettingsForm() {
     }
     const body = new FormData();
     body.append("file", uploadFile, uploadFile.name);
-    const res = await authFetch(`/api/settings/upload?key=${encodeURIComponent(key)}`, {
+    const res = await authFetch("/api/settings/upload", {
       method: "POST",
       body,
     });
@@ -86,7 +86,7 @@ export function SettingsForm() {
     setForm(next);
     updateLocal(next);
     setError("");
-    setMsg("Image uploaded and saved.");
+    setMsg("Image uploaded. Click Save settings to apply it across the system.");
   }
 
   async function save() {
