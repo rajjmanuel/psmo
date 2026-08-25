@@ -12,7 +12,11 @@ const globalForDb = globalThis as typeof globalThis & {
 };
 
 export const pool =
-  globalForDb.__psmoMysqlPool ?? mysql.createPool(databaseUrl);
+  globalForDb.__psmoMysqlPool ??
+  mysql.createPool({
+    uri: databaseUrl,
+    timezone: "Z",
+  });
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__psmoMysqlPool = pool;
