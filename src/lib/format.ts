@@ -36,6 +36,7 @@ export function formatDateTime(value: string | Date | null | undefined) {
 
 function toDate(value: string | Date) {
   if (value instanceof Date) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return new Date(`${value}T00:00:00+08:00`);
   const mysqlDateTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
   return new Date(mysqlDateTime.test(value) ? `${value.replace(" ", "T")}+08:00` : value);
 }

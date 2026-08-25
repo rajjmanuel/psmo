@@ -16,6 +16,7 @@ export const pool =
   mysql.createPool({
     uri: databaseUrl,
     timezone: "+08:00",
+    dateStrings: true,
   });
 
 if (process.env.NODE_ENV !== "production") {
