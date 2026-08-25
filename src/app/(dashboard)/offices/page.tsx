@@ -2,6 +2,7 @@ import { count } from "drizzle-orm";
 import { db } from "@/db";
 import { assets, offices } from "@/db/schema";
 import { OfficeForm } from "@/components/OfficeForm";
+import { OfficeActions } from "@/components/OfficeActions";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { seedIfEmpty } from "@/lib/seed";
@@ -67,6 +68,9 @@ function Column({
           <p className="mt-1 text-xs text-[#8a8070]">
             {countMap[row.id] ?? 0} tagged item(s) on the ledger
           </p>
+          <div className="mt-3 flex justify-end">
+            <OfficeActions id={row.id} name={row.name} />
+          </div>
         </article>
       ))}
     </section>

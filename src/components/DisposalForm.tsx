@@ -51,6 +51,13 @@ export function DisposalForm({
   }
 
   async function onSubmit(formData: FormData) {
+    if (selected.length === 0) {
+      const message = "Select at least one item before filing a disposal request.";
+      setError(message);
+      toast.error("No item selected", message);
+      return;
+    }
+
     setSaving(true);
     setError("");
     const res = await authFetch("/api/disposals", {
@@ -185,7 +192,11 @@ export function DisposalForm({
         <p className="mt-2 text-xs text-[#8a8070]">{selected.length} item(s) selected</p>
       </section>
 
-      <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60">
+      <button
+        type="submit"
+        disabled={saving || selected.length === 0}
+        className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {saving ? "Filing…" : "File disposal request"}
       </button>
     </form>

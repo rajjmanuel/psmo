@@ -133,7 +133,13 @@ export async function PUT(
 
     return Response.json({ ...row, disposalRequestNo });
   } catch (error: any) {
-    if (error?.code === "23505" || error?.cause?.code === "23505") {
+    if (
+      error?.code === "23505" ||
+      error?.cause?.code === "23505" ||
+      error?.code === "ER_DUP_ENTRY" ||
+      error?.errno === 1062 ||
+      error?.cause?.errno === 1062
+    ) {
       return Response.json({ error: "That Tagging No. is already in use by another item." }, { status: 400 });
     }
     return Response.json({ error: "An unexpected error occurred while updating." }, { status: 500 });

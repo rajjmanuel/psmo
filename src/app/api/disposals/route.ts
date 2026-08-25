@@ -67,6 +67,11 @@ export async function POST(request: Request) {
       return Response.json({ error: "Requested by and date are required." }, { status: 400 });
     }
 
+    const assetIds = Array.isArray(body.assetIds) ? body.assetIds.map(Number) : [];
+    if (assetIds.length === 0) {
+      return Response.json({ error: "Select at least one item before filing a disposal request." }, { status: 400 });
+    }
+
     const requestNo = await nextDisposalNo();
     const [{ id }] = await db
       .insert(disposalRequests)
@@ -82,20 +87,17 @@ export async function POST(request: Request) {
       .$returningId();
     const [row] = await db.select().from(disposalRequests).where(eq(disposalRequests.id, id));
 
-    const assetIds = Array.isArray(body.assetIds) ? body.assetIds.map(Number) : [];
-    if (assetIds.length) {
-      await db.insert(disposalItems).values(
-        assetIds.map((assetId) => ({
-          disposalRequestId: row.id,
-          assetId,
-          reason: body.reason ?? null,
-        })),
-      );
-      await db
-        .update(assets)
-        .set({ status: "for-disposal", updatedAt: new Date() })
-        .where(inArray(assets.id, assetIds));
-    }
+    await db.insert(disposalItems).values(
+      assetIds.map((assetId) => ({
+        disposalRequestId: row.id,
+        assetId,
+        reason: body.reason ?? null,
+      })),
+    );
+    await db
+      .update(assets)
+      .set({ status: "for-disposal", updatedAt: new Date() })
+      .where(inArray(assets.id, assetIds));
 
     await db.insert(activityLogs).values({
       module: "disposal",

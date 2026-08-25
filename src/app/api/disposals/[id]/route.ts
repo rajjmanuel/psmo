@@ -92,6 +92,9 @@ export async function PUT(
     patch.verification = body.verification ?? "beyond-repair";
     patch.verifiedBy = actor;
     patch.verifiedAt = new Date();
+  } else if (action === "resume") {
+    patch.status = existing[0].rejectedFromStatus ?? "requested";
+    patch.rejectedFromStatus = null;
   } else if (action === "approve") {
     patch.status = "approved";
     patch.approvedBy = actor;
@@ -110,6 +113,7 @@ export async function PUT(
     }
   } else if (action === "reject") {
     patch.status = "rejected";
+    patch.rejectedFromStatus = existing[0].status;
     patch.remarks = body.remarks ?? existing[0].remarks;
   } else {
     if (body.reason !== undefined) patch.reason = body.reason;

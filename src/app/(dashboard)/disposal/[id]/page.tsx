@@ -25,6 +25,7 @@ export default async function DisposalDetailPage({
       requestedBy: disposalRequests.requestedBy,
       requestDate: disposalRequests.requestDate,
       status: disposalRequests.status,
+      rejectedFromStatus: disposalRequests.rejectedFromStatus,
       endorsementType: disposalRequests.endorsementType,
       endorsementRef: disposalRequests.endorsementRef,
       endorsedBy: disposalRequests.endorsedBy,
@@ -112,6 +113,13 @@ export default async function DisposalDetailPage({
                   <span className="block text-xs text-[#8a8070]">{formatDateTime(row.verifiedAt)}</span>
                 </dd>
               </div>
+              <div>
+                <dt className="text-[11px] uppercase tracking-wider text-[#8a8070]">Approved</dt>
+                <dd>
+                  {row.approvedBy ?? "—"}
+                  <span className="block text-xs text-[#8a8070]">{formatDateTime(row.approvedAt)}</span>
+                </dd>
+              </div>
             </dl>
           </section>
 
@@ -155,7 +163,11 @@ export default async function DisposalDetailPage({
           </section>
 
         <div className="flex justify-end">
-          <DisposalActions id={row.id} status={row.status} />
+          <DisposalActions
+            id={row.id}
+            status={row.status}
+            rejectedFromStatus={row.rejectedFromStatus}
+          />
         </div>
       </div>
     </div>

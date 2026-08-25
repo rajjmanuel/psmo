@@ -38,7 +38,7 @@ export function HomeHero({ offices }: { offices: Office[] }) {
           </p>
           <div className="mt-7 flex flex-wrap gap-2">
             <RecordItemModal offices={offices} label="Record an item" />
-            <ProcurementRequestModal offices={offices} label="New procurement" />
+            <ProcurementRequestModal offices={offices} units={["AMT", "SSMT"]} label="New procurement" />
           </div>
         </div>
         <div className="relative min-h-[260px]">

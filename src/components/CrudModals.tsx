@@ -4,6 +4,7 @@ import { AssetForm } from "@/components/AssetForm";
 import { DisposalForm } from "@/components/DisposalForm";
 import { ModalTrigger } from "@/components/Modal";
 import { ProcurementForm } from "@/components/ProcurementForm";
+import { ProcurementUnitForm } from "@/components/ProcurementUnitForm";
 import { UserForm, type EditableUser } from "@/components/UserForm";
 
 type Office = { id: number; name: string; code: string; type: string };
@@ -98,9 +99,11 @@ export function DisposalRequestModal({
 
 export function ProcurementRequestModal({
   offices,
+  units,
   label = "New request",
 }: {
   offices: Office[];
+  units: string[];
   label?: string;
 }) {
   return (
@@ -109,10 +112,12 @@ export function ProcurementRequestModal({
       title="AMT / SSMT procurement request"
       description="Start a procurement request and continue through canvassing, P.O., and MRR."
     >
-      {({ close }) => <ProcurementForm offices={offices} onSuccess={() => close()} />}
+      {({ close }) => <ProcurementForm offices={offices} units={units} onSuccess={() => close()} />}
     </ModalTrigger>
   );
 }
+
+export { ProcurementUnitForm };
 
 export function AddUserModal({ label = "Add account" }: { label?: string }) {
   return (

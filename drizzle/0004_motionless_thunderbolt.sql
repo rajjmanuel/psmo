@@ -1,0 +1,1 @@
+ALTER TABLE `disposal_requests` ADD COLUMN IF NOT EXISTS `rejected_from_status` text;

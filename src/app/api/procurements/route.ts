@@ -48,9 +48,23 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, string | number | null | undefined>;
 
-    if (!body.itemName || !body.requestedBy || !body.unit || !body.requestDate) {
+    if (
+      typeof body.unit !== "string" ||
+      !body.unit.trim() ||
+      typeof body.itemName !== "string" ||
+      !body.itemName.trim() ||
+      typeof body.requestedBy !== "string" ||
+      !body.requestedBy.trim() ||
+      typeof body.requestDate !== "string" ||
+      !body.requestDate.trim() ||
+      typeof body.specifications !== "string" ||
+      !body.specifications.trim() ||
+      typeof body.justification !== "string" ||
+      !body.justification.trim() ||
+      Number(body.quantity) < 1
+    ) {
       return Response.json(
-        { error: "Unit, item, requested by, and date are required." },
+        { error: "Unit, requester, date, item, specifications, quantity, and justification are required." },
         { status: 400 },
       );
     }

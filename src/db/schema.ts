@@ -8,6 +8,7 @@ import {
   mysqlTable,
   text,
   timestamp,
+  varchar,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
@@ -28,6 +29,12 @@ export const offices = mysqlTable("offices", {
   head: text("head"),
   floor: text("floor"),
   contact: text("contact"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const procurementUnits = mysqlTable("procurement_units", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 191 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -60,6 +67,7 @@ export const disposalRequests = mysqlTable("disposal_requests", {
   requestedBy: text("requested_by").notNull(),
   requestDate: date("request_date", { mode: "string" }).notNull(),
   status: text("status").notNull().default("requested"),
+  rejectedFromStatus: text("rejected_from_status"),
   endorsementType: text("endorsement_type"),
   endorsementRef: text("endorsement_ref"),
   endorsedBy: text("endorsed_by"),
@@ -115,6 +123,17 @@ export const procurementRequests = mysqlTable("procurement_requests", {
   remarks: text("remarks"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const procurementAttachments = mysqlTable("procurement_attachments", {
+  id: int("id").autoincrement().primaryKey(),
+  procurementRequestId: int("procurement_request_id")
+    .references(() => procurementRequests.id)
+    .notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 150 }).notNull(),
+  data: mediumtext("data").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const canvassQuotes = mysqlTable("canvass_quotes", {

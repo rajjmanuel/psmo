@@ -49,7 +49,7 @@ export default async function DisposalPage({
     .from(disposalRequests)
     .leftJoin(offices, eq(disposalRequests.officeId, offices.id))
     .where(status ? eq(disposalRequests.status, status) : undefined)
-    .orderBy(desc(disposalRequests.createdAt));
+    .orderBy(desc(disposalRequests.updatedAt));
 
   const ids = rows.map((r) => r.id);
   const counts =

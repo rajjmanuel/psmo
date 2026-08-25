@@ -2,7 +2,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { canvassQuotes, offices, procurementRequests } from "@/db/schema";
+import { canvassQuotes, offices, procurementAttachments, procurementRequests } from "@/db/schema";
 import { PageHeader } from "@/components/PageHeader";
 import { ProcurementActions } from "@/components/ProcurementActions";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -57,6 +57,10 @@ export default async function ProcurementDetailPage({
     .select()
     .from(canvassQuotes)
     .where(eq(canvassQuotes.procurementRequestId, row.id));
+  const attachments = await db
+    .select({ id: procurementAttachments.id, fileName: procurementAttachments.fileName, mimeType: procurementAttachments.mimeType })
+    .from(procurementAttachments)
+    .where(eq(procurementAttachments.procurementRequestId, row.id));
 
   return (
     <div className="space-y-6">
@@ -117,6 +121,22 @@ export default async function ProcurementDetailPage({
             {row.approvalNotes ? (
               <div className="mt-3 text-sm text-[#5c564c]">
                 Approved by {row.approvedBy} · {formatDateTime(row.approvedAt)} — {row.approvalNotes}
+              </div>
+            ) : null}
+            {attachments.length > 0 ? (
+              <div className="mt-4 rounded-xl bg-[#f7f1e6] px-4 py-3 text-sm">
+                <p className="text-[11px] uppercase tracking-wider text-[#8a7540]">Supporting files</p>
+                <div className="mt-2 grid gap-2">
+                  {attachments.map((attachment) => (
+                    <a
+                      key={attachment.id}
+                      href={`/api/procurements/${row.id}/attachments/${attachment.id}`}
+                      className="text-blue-700 hover:underline"
+                    >
+                      {attachment.fileName}
+                    </a>
+                  ))}
+                </div>
               </div>
             ) : null}
           </section>

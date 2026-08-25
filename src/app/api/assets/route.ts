@@ -67,7 +67,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, string | number | null | undefined>;
 
-    if (!body.description) {
+    if (typeof body.description !== "string" || !body.description.trim()) {
       return Response.json({ error: "Description is required." }, { status: 400 });
     }
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       .insert(assets)
       .values({
         taggingNo,
-        description: String(body.description),
+        description: String(body.description).trim(),
         brand: body.brand ? String(body.brand) : null,
         model: body.model ? String(body.model) : null,
         serialNo: body.serialNo ? String(body.serialNo) : null,
@@ -109,7 +109,14 @@ export async function POST(request: Request) {
 
     return Response.json(row, { status: 201 });
   } catch (error: any) {
-    if (error?.code === "23505" || error?.cause?.code === "23505") {
+    console.error("Failed to create inventory asset", error);
+    if (
+      error?.code === "23505" ||
+      error?.cause?.code === "23505" ||
+      error?.code === "ER_DUP_ENTRY" ||
+      error?.errno === 1062 ||
+      error?.cause?.errno === 1062
+    ) {
       return Response.json({ error: "That Tagging No. is already in use." }, { status: 400 });
     }
     return Response.json({ error: "An unexpected error occurred while saving." }, { status: 500 });

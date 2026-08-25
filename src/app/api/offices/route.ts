@@ -1,7 +1,8 @@
-import { desc, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { activityLogs, offices } from "@/db/schema";
+import { activityLogs, assets, disposalRequests, offices, procurementRequests } from "@/db/schema";
 import { seedIfEmpty } from "@/lib/seed";
+import { getSessionUser } from "@/lib/auth-server";
 
 export const dynamic = "force-dynamic";
 
@@ -54,5 +55,45 @@ export async function POST(request: Request) {
       return Response.json({ error: "An office or laboratory with this code already exists." }, { status: 400 });
     }
     return Response.json({ error: "An unexpected error occurred while saving." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await getSessionUser();
+    if (user?.role !== "admin") {
+      return Response.json({ error: "Only administrators can delete offices or laboratories." }, { status: 403 });
+    }
+
+    const body = (await request.json()) as { id?: number; actor?: string };
+    if (!body.id) return Response.json({ error: "Office or laboratory id is required." }, { status: 400 });
+
+    const [office] = await db.select().from(offices).where(eq(offices.id, Number(body.id)));
+    if (!office) return Response.json({ error: "Office or laboratory not found." }, { status: 404 });
+
+    const [[assetCount], [disposalCount], [procurementCount]] = await Promise.all([
+      db.select({ n: count() }).from(assets).where(eq(assets.officeId, office.id)),
+      db.select({ n: count() }).from(disposalRequests).where(eq(disposalRequests.officeId, office.id)),
+      db.select({ n: count() }).from(procurementRequests).where(eq(procurementRequests.officeId, office.id)),
+    ]);
+    const linkedRecords = Number(assetCount.n) + Number(disposalCount.n) + Number(procurementCount.n);
+    if (linkedRecords > 0) {
+      return Response.json(
+        { error: `Cannot delete ${office.name} because it is linked to ${linkedRecords} record(s).` },
+        { status: 409 },
+      );
+    }
+
+    await db.delete(offices).where(eq(offices.id, office.id));
+    await db.insert(activityLogs).values({
+      module: "offices",
+      action: "deleted",
+      referenceId: office.id,
+      details: `Removed ${office.type} ${office.name}`,
+      actor: body.actor ?? "PSMO Staff",
+    });
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json({ error: "Unable to delete office or laboratory." }, { status: 500 });
   }
 }

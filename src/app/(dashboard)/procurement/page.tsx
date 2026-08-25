@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { offices, procurementRequests } from "@/db/schema";
-import { ProcurementRequestModal } from "@/components/CrudModals";
+import { offices, procurementRequests, procurementUnits } from "@/db/schema";
+import { ProcurementRequestModal, ProcurementUnitForm } from "@/components/CrudModals";
 import { EmptyState } from "@/components/EmptyState";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -20,6 +20,12 @@ export default async function ProcurementPage({
   await seedIfEmpty();
   const { status, unit } = await searchParams;
   const officeRows = await db.select().from(offices).orderBy(offices.name);
+  const unitRows = await db
+    .select({ unit: procurementRequests.unit })
+    .from(procurementRequests)
+    .groupBy(procurementRequests.unit);
+  const unitRecords = await db.select().from(procurementUnits).orderBy(procurementUnits.name);
+  const procurementUnitNames = Array.from(new Set(["AMT", "SSMT", ...unitRecords.map((row) => row.name), ...unitRows.map((row) => row.unit)]));
 
   const rows = await db
     .select({
@@ -53,14 +59,22 @@ export default async function ProcurementPage({
         kicker="For Procurement"
         title="Canvass to MRR"
         description="Upon request of AMT & SSMT. Comparative report, approval, P.O. with control no., after check payment, then Material Receiving Report issued by PSMO."
-        actions={<ProcurementRequestModal offices={officeRows} label="New request" />}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <ProcurementUnitForm units={unitRecords} />
+            <ProcurementRequestModal offices={officeRows} units={procurementUnitNames} label="New request" />
+          </div>
+        }
       />
 
       <form className="mb-5 flex flex-wrap gap-2">
-        <select name="unit" defaultValue={unit ?? ""} className="field max-w-[160px]">
-          <option value="">AMT & SSMT</option>
-          <option value="AMT">AMT</option>
-          <option value="SSMT">SSMT</option>
+        <select name="unit" defaultValue={unit ?? ""} className="field max-w-[190px]">
+          <option value="">All requesting units</option>
+          {procurementUnitNames.map((unitName) => (
+            <option key={unitName} value={unitName}>
+              {unitName}
+            </option>
+          ))}
         </select>
         <select name="status" defaultValue={status ?? ""} className="field max-w-xs">
           <option value="">All stages</option>
@@ -93,6 +107,7 @@ export default async function ProcurementPage({
                 <th className="px-4 py-3">Estimate</th>
                 <th className="px-4 py-3">P.O. / MRR</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">View</th>
               </tr>
             </thead>
             <tbody>
@@ -119,6 +134,19 @@ export default async function ProcurementPage({
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge value={row.status} />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/procurement/${row.id}`}
+                      aria-label={`View ${row.requestNo}`}
+                      title="View request"
+                      className="btn-ghost !h-9 !w-9 !p-0"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                        <circle cx="12" cy="12" r="2.5" />
+                      </svg>
+                    </Link>
                   </td>
                 </tr>
               ))}
