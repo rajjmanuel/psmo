@@ -37,7 +37,7 @@ export function formatDateTime(value: string | Date | null | undefined) {
 function toDate(value: string | Date) {
   if (value instanceof Date) return value;
   const mysqlDateTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?$/;
-  return new Date(mysqlDateTime.test(value) ? `${value.replace(" ", "T")}Z` : value);
+  return new Date(mysqlDateTime.test(value) ? `${value.replace(" ", "T")}+08:00` : value);
 }
 
 export function todayISO() {

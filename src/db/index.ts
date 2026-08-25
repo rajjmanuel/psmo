@@ -15,7 +15,7 @@ export const pool =
   globalForDb.__psmoMysqlPool ??
   mysql.createPool({
     uri: databaseUrl,
-    timezone: "Z",
+    timezone: "+08:00",
   });
 
 if (process.env.NODE_ENV !== "production") {
