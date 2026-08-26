@@ -35,10 +35,34 @@ export function OfficeActions({ id, name }: { id: number; name: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, actor: actorName }),
       });
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        linkedRecords?: { inventory: number; disposal: number; procurement: number };
+      };
       if (!response.ok) {
+        if (response.status === 409 && data.linkedRecords) {
+          const records = [
+            ["Inventory", data.linkedRecords.inventory],
+            ["Disposal requests", data.linkedRecords.disposal],
+            ["Procurement requests", data.linkedRecords.procurement],
+          ];
+          await Swal.fire({
+            icon: "warning",
+            title: "Office / lab is still in use",
+            text: "This entry cannot be deleted while linked records exist.",
+            html: `<h3 style="margin:14px 0 6px;text-align:left;font-size:14px;font-weight:600;color:#0f172a">List of linked records</h3><table style="width:100%;text-align:left;border-collapse:collapse;margin-top:8px"><tbody>${records
+              .map(
+                ([label, count]) =>
+                  `<tr><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0">${label}</td><td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:600">${count}</td></tr>`,
+              )
+              .join("")}</tbody></table>`,
+            confirmButtonText: "Close",
+            confirmButtonColor: "#2563eb",
+          });
+          return;
+        }
         toast.error(
-          response.status === 409 ? "Office / lab is still in use" : "Unable to delete office / lab",
+          "Unable to delete office / lab",
           data.error ?? "Please try again.",
         );
         return;

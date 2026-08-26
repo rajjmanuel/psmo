@@ -76,10 +76,18 @@ export async function DELETE(request: Request) {
       db.select({ n: count() }).from(disposalRequests).where(eq(disposalRequests.officeId, office.id)),
       db.select({ n: count() }).from(procurementRequests).where(eq(procurementRequests.officeId, office.id)),
     ]);
-    const linkedRecords = Number(assetCount.n) + Number(disposalCount.n) + Number(procurementCount.n);
-    if (linkedRecords > 0) {
+    const linkedRecords = {
+      inventory: Number(assetCount.n),
+      disposal: Number(disposalCount.n),
+      procurement: Number(procurementCount.n),
+    };
+    const linkedTotal = linkedRecords.inventory + linkedRecords.disposal + linkedRecords.procurement;
+    if (linkedTotal > 0) {
       return Response.json(
-        { error: `Cannot delete ${office.name} because it is linked to ${linkedRecords} record(s).` },
+        {
+          error: `Cannot delete ${office.name}. Linked records: Inventory: ${linkedRecords.inventory}, Disposal requests: ${linkedRecords.disposal}, Procurement requests: ${linkedRecords.procurement}.`,
+          linkedRecords,
+        },
         { status: 409 },
       );
     }
