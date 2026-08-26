@@ -7,13 +7,15 @@ type ModalChildren = ReactNode | ((helpers: { close: () => void }) => ReactNode)
 
 export function ModalTrigger({
   label,
+  ariaLabel,
   title,
   description,
   children,
   variant = "primary",
   buttonClassName = "",
 }: {
-  label: string;
+  label: ReactNode;
+  ariaLabel?: string;
   title: string;
   description?: string;
   children: ModalChildren;
@@ -81,7 +83,7 @@ export function ModalTrigger({
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={triggerClass}>
+      <button type="button" aria-label={ariaLabel} onClick={() => setOpen(true)} className={triggerClass}>
         {label}
       </button>
       {modal && typeof document !== "undefined" ? createPortal(modal, document.body) : null}

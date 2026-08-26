@@ -105,3 +105,46 @@ export async function DELETE(request: Request) {
     return Response.json({ error: "Unable to delete office or laboratory." }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = (await request.json()) as {
+      id?: number;
+      name?: string;
+      code?: string;
+      type?: string;
+      head?: string;
+      floor?: string;
+      contact?: string;
+      actor?: string;
+    };
+    if (!body.id || !body.name?.trim() || !body.code?.trim() || !body.type) {
+      return Response.json({ error: "Name, code, and type are required." }, { status: 400 });
+    }
+    const [existing] = await db.select().from(offices).where(eq(offices.id, Number(body.id)));
+    if (!existing) return Response.json({ error: "Office or laboratory not found." }, { status: 404 });
+
+    await db.update(offices).set({
+      name: body.name.trim(),
+      code: body.code.trim().toUpperCase(),
+      type: body.type,
+      head: body.head?.trim() || null,
+      floor: body.floor?.trim() || null,
+      contact: body.contact?.trim() || null,
+    }).where(eq(offices.id, existing.id));
+    const [row] = await db.select().from(offices).where(eq(offices.id, existing.id));
+    await db.insert(activityLogs).values({
+      module: "offices",
+      action: "updated",
+      referenceId: row.id,
+      details: `Updated ${row.type} ${row.name}`,
+      actor: body.actor ?? "PSMO Staff",
+    });
+    return Response.json(row);
+  } catch (error: any) {
+    if (error?.code === "ER_DUP_ENTRY" || error?.errno === 1062) {
+      return Response.json({ error: "An office or laboratory with this code already exists." }, { status: 400 });
+    }
+    return Response.json({ error: "Unable to update office or laboratory." }, { status: 500 });
+  }
+}

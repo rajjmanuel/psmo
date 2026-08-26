@@ -69,7 +69,7 @@ function Column({
             {countMap[row.id] ?? 0} tagged item(s) on the ledger
           </p>
           <div className="mt-3 flex justify-end">
-            <OfficeActions id={row.id} name={row.name} />
+            <OfficeActions id={row.id} name={row.name} office={row} />
           </div>
         </article>
       ))}

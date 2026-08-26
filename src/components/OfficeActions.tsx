@@ -6,8 +6,25 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/Toast";
 import { authFetch } from "@/lib/auth-fetch";
 import Swal from "sweetalert2";
+import { OfficeEditForm } from "@/components/OfficeEditForm";
 
-export function OfficeActions({ id, name }: { id: number; name: string }) {
+export function OfficeActions({
+  id,
+  name,
+  office,
+}: {
+  id: number;
+  name: string;
+  office: {
+    id: number;
+    name: string;
+    code: string;
+    type: string;
+    head: string | null;
+    floor: string | null;
+    contact: string | null;
+  };
+}) {
   const router = useRouter();
   const { name: actorName, role } = useAuth();
   const toast = useToast();
@@ -77,19 +94,24 @@ export function OfficeActions({ id, name }: { id: number; name: string }) {
   }
 
   return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={remove}
-      title="Delete office or laboratory"
-      className="rounded-lg border border-rose-300 bg-rose-50 p-2 text-rose-700 shadow-sm hover:bg-rose-100 disabled:opacity-50"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 7h16" />
-        <path d="M10 11v6M14 11v6" />
-        <path d="M6 7l1 13h10l1-13M9 7V4h6v3" />
-      </svg>
-      <span className="sr-only">{busy ? "Deleting" : "Delete"}</span>
-    </button>
+    <div className="flex items-center gap-2">
+      <OfficeEditForm office={office} />
+      {role === "admin" ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={remove}
+          title="Delete office or laboratory"
+          className="rounded-lg border border-rose-300 bg-rose-50 p-2 text-rose-700 shadow-sm hover:bg-rose-100 disabled:opacity-50"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 7h16" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M6 7l1 13h10l1-13M9 7V4h6v3" />
+          </svg>
+          <span className="sr-only">{busy ? "Deleting" : "Delete"}</span>
+        </button>
+      ) : null}
+    </div>
   );
 }
